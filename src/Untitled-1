@@ -1,0 +1,167 @@
+import React, { Component } from 'react';
+import { withRouter } from "react-router-dom";
+import { connect } from "react-redux";
+import Toggle from 'react-toggle';
+import { Select } from 'antd';
+// import "antd/dist/antd.css";
+import Home from './Home';
+import swal from 'sweetalert';
+import user from '../reducers/user';
+import * as actions from '../actions';
+
+
+class FilterList extends Component {
+
+    constructor(props) {
+        super(props);
+        this.state = {
+            search: "",
+            filteredData:null,
+       };
+    }
+
+    handleChange(value) {
+        console.log("before", value);
+         var searchdata=value.map((data)=>{
+              return data.label
+          })
+          console.log("after", searchdata);
+          this.setState({filteredData:searchdata})
+        }
+
+       
+      applydata(event){
+          event.preventDefault();
+          try {
+
+            
+             
+            var self=this;
+            var filter = {filter:{firstname:this.state.filteredData}} ;
+            console.log(filter)
+            var access_token=this.props.access_token;
+            console.log(access_token)
+            this.props.searchdata(filter, access_token, (response) => {
+                let { data } = response;
+                if (data.status == 1) {
+                    console.log("data is" + JSON.stringify(data))
+                    self.setState({ error: null, userdata: data.data })
+
+                }
+                else {
+                    swal(data.message, '', 'error');
+                }
+            }).catch(error => {
+                return error;
+            });
+        } catch (err) {
+            console.log("here")
+            console.log("error is " + JSON.stringify(err));
+        }
+    }
+ 
+
+
+
+    render() {
+        const Option = Select.Option;
+        const children = [];
+        return (
+            <div>
+                {(this.props.show == true) ? (
+                    <div id="filterBlock" className="filter-block animated fadeInDown">
+                        <form>
+                            <div className="row">
+                                <div className="col-12">
+                                    <div className="form-group row">
+                                        <div className="col-3">
+                                            <label>First Name </label>
+                                            <Select
+                                                labelInValue
+                                                mode="multiple"
+                                                style={{ width: 200, marginBottom: 20, float: "right" }}
+                                                placeholder="Search"
+                                                optionFilterProp="children"
+                                                onChange={this.handleChange.bind(this)}
+                                                filterOption={(input, option) => option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0}
+
+                                            >
+                                                {
+                                                    this.props.dataTofilter.map((data, Key) => {
+                                                        return <Option key={Key}>{data.firstname}</Option>
+                                                    }
+                                                    )
+                                                }
+                                            </Select>
+                                        </div>
+
+                                        {/* <div className="col-3">
+                                            <label>Last Name </label>
+                                            <Select
+                                                labelInValue
+                                                mode="multiple"
+                                                style={{ width: 200, marginBottom: 20, float: "right" }}
+                                                placeholder="Search"
+                                                optionFilterProp="children"
+                                                onChange={this.handleChange}
+                                                filterOption={(input, option) => option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0}
+
+                                            >
+                                                {
+                                                    this.props.dataTofilter.map((data, Key) => {
+                                                        return <Option key={Key}>{data.lastname}</Option>
+                                                    }
+                                                    )
+                                                }
+                                            </Select>
+                                        </div>
+
+                                        <div className="col-3">
+                                            <label>EmailId</label>
+                                            <Select
+                                                labelInValue
+                                                mode="multiple"
+                                                style={{ width: 200, marginBottom: 20, float: "right" }}
+                                                placeholder="Search"
+                                                optionFilterProp="children"
+                                                onChange={this.handleChange}
+                                                filterOption={(input, option) => option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0}
+
+                                            >
+                                                {
+                                                    this.props.dataTofilter.map((data, Key) => {
+                                                        return <Option key={Key}>{data.emailId}</Option>
+                                                    }
+                                                    )
+                                                }
+                                            </Select>
+                                        </div> */}
+
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            <div className="row">
+                                <div className="col-12 button-continer" style={{ marginBottom: 20 }}>
+                                    <button type="submit" className="btn btn-primary pull-right" onClick={this.applydata.bind(this)}>Apply Filter</button>
+                                    <button type="button" className="btn btn-warning pull-right">Reset Filter</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>) : (<div> </div>)
+                }
+            </div>
+
+        );
+    }
+}
+
+
+const mapStateToProps = state => ({
+    userEditData: state.admin.editUser,
+
+});
+
+
+export default withRouter(connect(mapStateToProps, actions)(FilterList));
